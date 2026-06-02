@@ -1,0 +1,75 @@
+{
+  "projectType": "general",
+  "projectName": "Sol's Biome Randomizer Macro",
+  "projectDescription": "An AutoHotkey v2 macro that automatically uses the Biome Randomizer and Strange Controller items on cooldown in the Roblox game Sol's RNG, with AFK prevention, Windows OCR-based item detection, and optional Discord webhook notifications.",
+  "theme": "palm",
+  "primaryColor": "#5B7FFF",
+  "lightColor": "#EEF2FF",
+  "darkColor": "#1A1F3C",
+  "navigation": {
+    "groups": [
+      {
+        "group": "Get Started",
+        "pages": [
+          "introduction",
+          "installation",
+          "quickstart"
+        ]
+      },
+      {
+        "group": "Configuration",
+        "pages": [
+          "configuration/settings-ini",
+          "configuration/coordinates",
+          "configuration/cooldowns-and-toggles"
+        ]
+      },
+      {
+        "group": "Features",
+        "pages": [
+          "features/scheduler",
+          "features/ocr-detection",
+          "features/afk-prevention",
+          "features/discord-webhook",
+          "features/heavenly-potion-crafting"
+        ]
+      },
+      {
+        "group": "Reference",
+        "pages": [
+          "reference/gui-controls",
+          "reference/troubleshooting"
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Automatic Biome Randomizer usage on a configurable cooldown (default 35.2 minutes)",
+    "Automatic Strange Controller usage on a configurable cooldown (default 20.2 minutes)",
+    "Windows OCR-based inventory item detection with fuzzy matching",
+    "AFK prevention via periodic Space/E/F keypresses and mouse clicks",
+    "Eden detection via OCR with automatic merchant dialogue handling",
+    "Discord webhook notifications with screenshot upload via Catbox",
+    "Heavenly Potion auto-crafting support with configurable ingredient amounts",
+    "Window targeting by HWND or title, with Ctrl+Click picker",
+    "Persistent settings saved to settings.ini on exit",
+    "Available as both an AHK script and a compiled EXE"
+  ],
+  "publicApiSurface": [
+    "Toggle Active button — starts/stops the automation scheduler",
+    "Force Biome Use button — immediately uses the Biome Randomizer",
+    "Force Strange Use button — immediately uses the Strange Controller",
+    "Force AFK button — immediately performs the AFK action",
+    "Toggle Biome Use button — enables/disables Biome Randomizer automation",
+    "Toggle Strange Use button — enables/disables Strange Controller automation",
+    "Ctrl+Click = active window button — sets the target window by clicking on it",
+    "Apply text as HWND/title button — sets the target window from the text field",
+    "F12 hotkey — exits the application",
+    "settings.ini [Inventory Coordinates] section",
+    "settings.ini [Crafting] section",
+    "settings.ini [Crafting\\Heavenly] section",
+    "settings.ini [Toggles] section",
+    "settings.ini [Cooldowns] section",
+    "settings.ini [Discord Webhook] section"
+  ]
+}

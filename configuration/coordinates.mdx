@@ -1,0 +1,173 @@
+---
+title: "Inventory and Crafting Coordinate Configuration"
+sidebarTitle: "Coordinates"
+description: "Configure screen coordinates in settings.ini for inventory, item search, crafting menus, and merchant dialogue to match your display setup in Sol's RNG."
+---
+
+The `[Inventory Coordinates]`, `[Crafting]`, and `[Crafting\Heavenly]` sections in `settings.ini` define the exact pixel positions the macro clicks and scans during each automation cycle. All defaults are calibrated for **fullscreen 1080p at 100% Windows display scale**. If your monitor runs at a different resolution, you use a non-standard display scale, or Roblox is not in fullscreen, you will need to update these values to match your actual layout.
+
+<Note>
+  All coordinates are **absolute screen pixel positions** measured from the top-left corner of your primary monitor (0, 0). They are not relative to the Roblox window — with one exception: the OCR scan rectangle (`RectangleTopX` / `RectangleTopY`) is offset by the Roblox window's own position at runtime, so the OCR region tracks the window correctly even when it is not at the top-left of the screen.
+</Note>
+
+<Tip>
+  To find the correct pixel coordinates for your setup, open the Roblox game in fullscreen, then use the Windows Snipping Tool (**Win + Shift + S**) and hover over the target UI element — the cursor position shown in any screenshot editor corresponds directly to the values you need. Alternatively, a dedicated pixel-coordinate finder tool (such as AutoHotkey's built-in **Window Spy**, available from the system tray when AHK is running) gives a live readout of the cursor's absolute screen position.
+</Tip>
+
+---
+
+## \[Inventory Coordinates]
+
+These keys cover everything the macro needs to open the inventory, locate an item via OCR, and press the Use button.
+
+<ParamField path="RectangleTopX" type="Integer" default="805">
+  X position (pixels from left edge of screen) of the top-left corner of the OCR scan rectangle. The macro captures this region to read the item name in the first inventory slot after searching.
+</ParamField>
+
+<ParamField path="RectangleTopY" type="Integer" default="424">
+  Y position (pixels from top edge of screen) of the top-left corner of the OCR scan rectangle.
+</ParamField>
+
+<ParamField path="RectangleWidth" type="Integer" default="90">
+  Width of the OCR scan rectangle in pixels. Increase if the item name is being cut off; decrease to reduce noise from adjacent UI elements.
+</ParamField>
+
+<ParamField path="RectangleHeight" type="Integer" default="90">
+  Height of the OCR scan rectangle in pixels. Should fully cover the item icon and name label in the inventory slot.
+</ParamField>
+
+<ParamField path="UseButtonX" type="Integer" default="683">
+  X coordinate of the **Use** button that appears in the item detail panel when an inventory item is selected.
+</ParamField>
+
+<ParamField path="UseButtonY" type="Integer" default="580">
+  Y coordinate of the **Use** button.
+</ParamField>
+
+<ParamField path="SearchX" type="Integer" default="876">
+  X coordinate of the inventory search input box. The macro pastes the item name here to filter the inventory before reading the first slot via OCR.
+</ParamField>
+
+<ParamField path="SearchY" type="Integer" default="360">
+  Y coordinate of the inventory search input box.
+</ParamField>
+
+<ParamField path="InventoryX" type="Integer" default="32">
+  X coordinate of the inventory toggle button on the left-side toolbar. The macro clicks this to open and close the inventory panel.
+</ParamField>
+
+<ParamField path="InventoryY" type="Integer" default="507">
+  Y coordinate of the inventory toggle button.
+</ParamField>
+
+<ParamField path="InventoryItemsX" type="Integer" default="1268">
+  X coordinate of the **Items** tab inside the inventory panel. Clicking this navigates to the items sub-category so the search box and item slots are visible.
+</ParamField>
+
+<ParamField path="InventoryItemsY" type="Integer" default="330">
+  Y coordinate of the inventory Items tab.
+</ParamField>
+
+<ParamField path="MerchantDialogueSkipX" type="Integer" default="948">
+  X coordinate of the button that advances (skips) merchant dialogue, primarily used during Eden NPC interactions detected by the AFK routine.
+</ParamField>
+
+<ParamField path="MerchantDialogueSkipY" type="Integer" default="837">
+  Y coordinate of the merchant dialogue skip button.
+</ParamField>
+
+<ParamField path="MerchantDialogueLeftX" type="Integer" default="778">
+  X coordinate of the **left** choice button in merchant dialogue menus (e.g., confirming a trade or dismissing an Eden prompt).
+</ParamField>
+
+<ParamField path="MerchantDialogueLeftY" type="Integer" default="912">
+  Y coordinate of the left dialogue choice button.
+</ParamField>
+
+---
+
+## \[Crafting]
+
+These keys are used when the macro detects an open crafting menu before item use. Unless `BypassCraftClose=true` is set, the macro checks whether the crafting panel is open (by inspecting a pixel colour at the close-button position) and, if so, closes it before proceeding with inventory interaction.
+
+<ParamField path="CraftCloseX" type="Integer" default="1850">
+  X coordinate to click to close an open crafting or recipe menu. Corresponds to the **✕** button in the top-right area of the crafting panel.
+</ParamField>
+
+<ParamField path="CraftCloseY" type="Integer" default="180">
+  Y coordinate of the crafting menu close button.
+</ParamField>
+
+<ParamField path="OpenRecipeMenuX" type="Integer" default="229">
+  X coordinate to reopen the crafting recipe menu after item use is complete, so any in-progress crafting session is restored.
+</ParamField>
+
+<ParamField path="OpenRecipeMenuY" type="Integer" default="825">
+  Y coordinate to open the recipe menu.
+</ParamField>
+
+<ParamField path="CraftButtonX" type="Integer" default="1079">
+  X coordinate of the **Craft** button inside the recipe detail panel. Used when the macro resumes a Heavenly Potion craft after adding ingredients.
+</ParamField>
+
+<ParamField path="CraftButtonY" type="Integer" default="686">
+  Y coordinate of the Craft button.
+</ParamField>
+
+---
+
+## \[Crafting\\Heavenly]
+
+This section is only active when the macro detects that a Heavenly Potion craft was in progress at the time an item use was triggered (detected by the pink buff indicator at a fixed pixel). After using the item, the macro scrolls the crafting list down to the Heavenly Potion entry, opens its recipe, fills in the ingredient amounts, and presses Craft.
+
+<Note>
+  If you do not use the Heavenly Potion crafting feature, these keys have no effect. You can leave them at their defaults.
+</Note>
+
+<ParamField path="HPScrolls" type="Integer" default="10">
+  Number of `WheelDown` scroll steps the macro performs to reach the Heavenly Potion entry in the crafting list after reopening the recipe menu. Increase this value if the Heavenly Potion sits further down the list on your account.
+</ParamField>
+
+<ParamField path="HPCraftMenuX" type="Integer" default="1600">
+  X coordinate of the Heavenly Potion entry in the crafting list. The macro clicks here to select it before opening its recipe.
+</ParamField>
+
+<ParamField path="HPCraftMenuY" type="Integer" default="840">
+  Y coordinate of the Heavenly Potion entry in the crafting list.
+</ParamField>
+
+<ParamField path="HPLuckyPotionsAmountX" type="Integer" default="1047">
+  X coordinate of the quantity input field for the Lucky Potions ingredient in the Heavenly Potion recipe.
+</ParamField>
+
+<ParamField path="HPLuckyPotionsAmountY" type="Integer" default="431">
+  Y coordinate of the Lucky Potions quantity input field.
+</ParamField>
+
+<ParamField path="HPLuckyPotionsAmount" type="Integer" default="250">
+  The number to type into the Lucky Potions ingredient field. The macro selects all existing text (`Ctrl+A`) and types this value before clicking the add button.
+</ParamField>
+
+<ParamField path="HPLuckyPotionsAddX" type="Integer" default="1130">
+  X coordinate of the **+** (add) button for the Lucky Potions ingredient row.
+</ParamField>
+
+<ParamField path="HPLuckyPotionsAddY" type="Integer" default="431">
+  Y coordinate of the Lucky Potions add button.
+</ParamField>
+
+<ParamField path="HPCelestialAddX" type="Integer" default="1130">
+  X coordinate of the **+** (add) button for the Celestial ingredient row.
+</ParamField>
+
+<ParamField path="HPCelestialAddY" type="Integer" default="486">
+  Y coordinate of the Celestial ingredient add button.
+</ParamField>
+
+<ParamField path="HPExoticAddX" type="Integer" default="1130">
+  X coordinate of the **+** (add) button for the Exotic ingredient row.
+</ParamField>
+
+<ParamField path="HPExoticAddY" type="Integer" default="537">
+  Y coordinate of the Exotic ingredient add button.
+</ParamField>

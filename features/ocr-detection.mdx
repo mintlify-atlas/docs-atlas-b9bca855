@@ -1,0 +1,61 @@
+---
+title: "Windows OCR Item Detection with Fuzzy Matching"
+sidebarTitle: "OCR Detection"
+description: "Sol's Biome Randomizer Macro uses Windows OCR to read item names from the inventory slot, with Levenshtein fuzzy matching to handle recognition errors."
+---
+
+Rather than relying on pixel-color matching or image templates, the macro reads item names directly from the screen using the **Windows UWP OCR engine** (`Windows.Media.Ocr`). A configurable screen rectangle is captured after searching for the item in the inventory, the text is extracted, and a fuzzy-matching algorithm confirms whether the correct item is visible. This approach is resilient to minor UI changes, font rendering differences, and small variations in how the game renders text — as long as the bounding rectangle is positioned correctly.
+
+## How OCR Detection Works
+
+When the scheduler determines an item needs to be used, it calls `UseItem(Item)`. That function:
+
+1. Activates the Roblox window and opens the inventory (`InventoryX`, `InventoryY`).
+2. Navigates to the **Items** tab by clicking (`InventoryItemsX`, `InventoryItemsY`).
+3. Clicks the search box (`SearchX`, `SearchY`) and pastes the item name from the clipboard with `^v` for speed and consistency.
+4. Calls `OCR.FromRect()` on the screen-adjusted rectangle defined by `RectangleTopX`, `RectangleTopY`, `RectangleWidth`, and `RectangleHeight` from `settings.ini`. The options passed are:
+
+```ahk
+OCR.FromRect(AdjustedTopX, AdjustedTopY, RectangleWidth, RectangleHeight,
+    {lang: "en-US", invertcolors: true, grayscale: true}).Text
+```
+
+5. Strips the quantity suffix by splitting on `"x"` and taking the first segment — for example, `"Biome Randomizer x3"` becomes `"Biome Randomizer"` after `Trim(StrSplit(results, "x")[1])`.
+6. Passes the cleaned text to `FuzzySearch()`. If the Levenshtein distance between the OCR result and the expected item name is **≤ 3**, the item is considered found and the macro clicks the slot and the Use button.
+
+If the OCR result is an empty string (the slot is blank or the rectangle missed the text entirely), `UseItem()` returns `false` immediately without clicking anything.
+
+## Fuzzy Matching
+
+[Levenshtein distance](https://en.wikipedia.org/wiki/Levenshtein_distance) counts the minimum number of single-character **insertions**, **deletions**, or **substitutions** required to transform one string into another. A distance of **0** means the strings are identical; a distance of **3** means up to three characters are wrong or missing.
+
+The threshold of ≤ 3 is generous enough to handle common OCR misreads — for instance, `"Biorne Randomizer"` (one substitution) or `"BiomeRandomizer"` (one deletion) — without accepting completely different item names.
+
+```ahk
+; Returns the Levenshtein distance between Source and Target.
+; A return value <= 3 is treated as a match.
+FuzzySearch(Source, Target, CaseSense := True) { ... }
+```
+
+The function is called with `CaseSense := false` in `UseItem()`, so capitalisation differences from OCR do not cause false negatives.
+
+## Bypassing OCR
+
+Setting `IgnoreOCR=true` in `settings.ini` under `[Toggles]` skips the OCR step entirely. When this flag is active, the macro clicks the item slot at the midpoint of the configured rectangle (`RectangleMidX`, `RectangleMidY`) without checking what is displayed there.
+
+This can be useful as a workaround when the Windows OCR engine is unavailable or consistently returning empty results, but it carries risk: if the search returns a different item in the first slot, the macro will use that item instead.
+
+## OCR Options Used
+
+| Option | Value | Purpose |
+|---|---|---|
+| `lang` | `"en-US"` | English language recognition model |
+| `invertcolors` | `true` | Inverts pixel colours before processing — improves detection against Sol's RNG's dark inventory background |
+| `grayscale` | `true` | Converts the captured region to greyscale, reducing colour noise before recognition |
+| `scale` | `2` | Used in `CheckEden()` (full-window scan) only — doubles the image size for better small-text recognition |
+
+The `scale: 2` option is **not** applied in `UseItem()`, only in the Eden detection scan via `OCR.FromWindow()`.
+
+<Tip>
+If OCR consistently returns empty results or wrong text, open the in-game inventory, position the item in the first search result slot, then take a screenshot and measure the pixel bounds of the item name. Adjust `RectangleTopX`, `RectangleTopY`, `RectangleWidth`, and `RectangleHeight` in `settings.ini` so the rectangle tightly covers only the item name text — not the quantity badge or surrounding UI chrome. A tighter rectangle gives the OCR engine less noise to work with and improves accuracy.
+</Tip>

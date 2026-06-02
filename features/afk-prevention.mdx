@@ -1,0 +1,76 @@
+---
+title: "AFK Prevention: Keep Your Sol's RNG Session Active"
+sidebarTitle: "AFK Prevention"
+description: "The macro sends periodic keypresses and mouse clicks to the target Roblox window to prevent AFK kicks, with a configurable interval and manual window targeting."
+---
+
+Sol's RNG will kick idle players after a period of inactivity. The macro's AFK prevention feature counters this by sending a sequence of keypresses and a mouse click to the target Roblox window at a configurable interval. Because the AFK action runs through the same scheduler as item use, it takes priority over cooldown checks — the game staying alive always comes first.
+
+## What the AFK Action Does
+
+The `DoAFK()` function performs the following steps every time it fires:
+
+1. Activates the target Roblox window and waits 150 ms for focus to settle.
+2. Sends **`{Space 3}`** — jumps three times.
+3. Sends **`{e 3}`** — presses the interact key three times.
+4. Sends **`{f 3}`** — presses the use/action key three times.
+5. Schedules `CheckEden()` to run **5 seconds later** via `SetTimer(CheckEden, -5000)` — this one-shot timer scans for Eden NPC text after the action has had time to trigger any on-screen dialogue.
+6. Moves the mouse to coordinates **(778, 912)** — the position of the Eden dialogue left-option button — and clicks.
+7. Moves the mouse back to its original position.
+8. Restores focus to the previously active window.
+
+```ahk
+DoAFK() {
+    WinActivate(tQuery)
+    Sleep(150)
+    Send("{Space 3}")
+    Sleep(50)
+    Send("{e 3}")
+    Sleep(50)
+    Send("{f 3}")
+    Sleep(50)
+    SetTimer(CheckEden, -5000)  ; scan for Eden 5s after AFK action
+    MouseGetPos(&MouseX, &MouseY)
+    MouseMove(778, 912, 3)
+    Click()
+    MouseMove(MouseX, MouseY, 3)  ; restore mouse position
+}
+```
+
+If the target window does not exist when `DoAFK()` is called, the function shows a "Window not Found" message box and returns `false` — the `lastAFK` timestamp is **not** updated in this case, so the scheduler will try again next cycle.
+
+## Configuration
+
+The AFK interval is set by `AFKIntervalMinutes` in the `[Cooldowns]` section of `settings.ini`. The default is **1.5 minutes**.
+
+```ini
+[Cooldowns]
+AFKIntervalMinutes=1.5
+```
+
+Lowering the interval makes AFK kicks less likely but causes more frequent focus steals and mouse movements. Raising it reduces interruptions but increases the risk of a kick if the game's idle timer is shorter than your configured interval. The default of 1.5 minutes is a safe balance for standard Sol's RNG sessions.
+
+## Window Targeting
+
+Both the AFK action and item-use automation send input to a **specific target window**. The macro needs to know which window is Roblox, especially if multiple windows share the same title.
+
+The target can be set in two ways from the GUI:
+
+<CardGroup cols={2}>
+  <Card title="Ctrl+Click = active window" icon="computer-mouse">
+    Click this button, then hold **Ctrl** and click anywhere on the Roblox window. The macro captures the window's **HWND** (a unique numeric handle) and stores it as the target. A tray notification confirms the captured handle and window title.
+  </Card>
+  <Card title="Apply text as HWND/title" icon="keyboard">
+    Type a window title (e.g. `Roblox`) or a raw HWND number into the text field, then click this button. The macro uses the entered value directly. HWND values take priority and are looked up with `ahk_id`.
+  </Card>
+</CardGroup>
+
+Using a **HWND** is more reliable than a title string when multiple browser tabs or windows contain the word "Roblox". The default target on startup is the string `"Roblox"`, which works for most single-instance setups.
+
+## Force AFK
+
+The **Force AFK** button in the GUI triggers `DoAFK()` immediately, regardless of how much time remains on the AFK interval, and then resets `lastAFK` to the current tick count. Use it to manually trigger the AFK animation if you know the game's idle timer is about to expire, or to test that window targeting is set up correctly.
+
+<Note>
+The AFK action temporarily steals window focus from whatever application you are currently using — your active window will be pushed to the background while the macro activates Roblox, sends keystrokes, and clicks. After the action completes, the macro restores focus to the previously active window. If you are typing or doing other work on the same machine, be aware that keystrokes sent during this brief focus change may be missed or misdirected.
+</Note>

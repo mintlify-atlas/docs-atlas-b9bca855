@@ -1,0 +1,61 @@
+---
+title: "Sol's Biome Randomizer Macro: Automate Sol's RNG Items"
+sidebarTitle: "Introduction"
+description: "Automate Biome Randomizer and Strange Controller usage in Sol's RNG with an AutoHotkey v2 macro featuring OCR detection, AFK prevention, and Discord alerts."
+---
+
+Sol's Biome Randomizer Macro is an AutoHotkey v2 desktop automation tool for the Roblox game Sol's RNG. Instead of manually opening your inventory every 35 minutes to use a Biome Randomizer or every 20 minutes to use a Strange Controller, the macro watches both cooldown clocks and fires the items automatically while you focus on the game — or step away entirely. It drives the Roblox window directly by HWND or window title, so it works alongside any other application on your desktop without interfering with your workflow.
+
+<CardGroup cols={2}>
+  <Card
+    title="Installation"
+    icon="download"
+    href="/installation"
+  >
+    Get the EXE or AHK source files onto your machine and placed correctly.
+  </Card>
+  <Card
+    title="Quickstart"
+    icon="bolt"
+    href="/quickstart"
+  >
+    Go from download to active automation in under five minutes.
+  </Card>
+  <Card
+    title="Settings Reference"
+    icon="sliders"
+    href="/configuration/settings-ini"
+  >
+    Every key in settings.ini explained — cooldowns, coordinates, toggles, and webhooks.
+  </Card>
+  <Card
+    title="GUI Controls"
+    icon="window"
+    href="/reference/gui-controls"
+  >
+    Full reference for every button, label, and field in the macro's control window.
+  </Card>
+</CardGroup>
+
+## Key Features
+
+- **Automatic Biome Randomizer use** — fires on a configurable cooldown (default 36 minutes) so you never waste a cycle by forgetting to use it.
+- **Automatic Strange Controller use** — fires on a separate configurable cooldown (default 21 minutes), independently timed from the Biome Randomizer.
+- **Windows OCR item detection** — before clicking Use, the macro captures a region of the inventory panel and runs Windows OCR on it. A Levenshtein-distance fuzzy match (tolerance ≤ 3 edits) confirms the correct item is visible, preventing misclicks on the wrong inventory slot.
+- **AFK prevention** — on a configurable interval (default 1.5 minutes) the macro sends Space, E, and F keypresses and a mouse click to the target window, keeping the game session alive.
+- **Eden detection and merchant dialogue handling** — after each AFK action, OCR scans the screen for the word "eden" or "contract". When detected, the macro clicks through the merchant dialogue automatically, then captures and uploads a screenshot for your records.
+- **Discord webhook notifications** — on Eden detection, the macro posts an embed to a Discord channel via webhook, mentioning a configured user ID and including the Catbox-hosted screenshot as an image embed.
+- **Heavenly Potion auto-crafting** — if a Heavenly crafting session was interrupted by an item-use cycle, the macro re-opens the recipe menu, fills in the required ingredient quantities (Lucky Potions, Celestial, Exotic), and queues the craft automatically.
+- **Window targeting by HWND or title** — type any window title (e.g. `Roblox`) into the AFK target field, or hold Ctrl and click the Roblox window with the "Ctrl+Click = active window" button to capture its HWND directly. The macro uses `WinActivate` against that target for every action.
+- **Persistent settings** — all configuration is read from `settings.ini` on startup and written back to `settings.ini` when the macro exits (F12 or window close), so your customisations survive restarts.
+- **EXE and AHK distributions** — download a single compiled EXE (plus `settings.ini`) for a no-dependency install, or run the `.ahk` source directly under AutoHotkey v2 if you prefer to inspect or modify the code.
+
+## System Requirements
+
+- **Windows** — the macro uses the Windows OCR engine (`Windows.Media.Ocr`) and `WinHttp.WinHttpRequest.5.1`; it will not run on macOS or Linux.
+- **AutoHotkey v2** — required only when running the `.ahk` source version. The compiled EXE bundles the runtime and has no external dependency.
+- **Roblox fullscreen at 1080p, 100% display scale** — the default inventory and crafting coordinates in `settings.ini` are calibrated for a 1920×1080 display at 100% Windows display scaling. Other resolutions and scale factors require coordinate adjustments.
+
+<Note>
+  If your Windows display scale is set to 125 % or higher, or if you play at a resolution other than 1920×1080, the default click coordinates in `settings.ini` will be off. Adjust the values under `[Inventory Coordinates]` and `[Crafting]` to match your setup before enabling the scheduler.
+</Note>

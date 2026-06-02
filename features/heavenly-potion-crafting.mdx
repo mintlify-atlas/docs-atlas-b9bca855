@@ -1,0 +1,88 @@
+---
+title: "Automated Heavenly Potion Crafting in Sol's RNG"
+sidebarTitle: "Heavenly Crafting"
+description: "When a Heavenly Potion craft is in progress, the macro auto-resumes crafting after using Biome Randomizer or Strange Controller, adding Lucky Potions, Celestial, and Exotic ingredients."
+---
+
+If you are actively crafting a Heavenly Potion at Mari's Cauldron in Sol's RNG, the macro can seamlessly work around the open crafting menu. Before using your Biome Randomizer or Strange Controller, it detects the open menu and closes it, uses the item, then automatically reopens the recipe, fills in the correct ingredient quantities, and clicks Craft — all without manual intervention. This lets the macro run item cooldowns continuously even while a long Heavenly Potion craft is in progress.
+
+## How It Works
+
+Every call to `UseItem()` runs two pixel checks against the active Roblox window before opening the inventory:
+
+### Step 1 — Detect an open crafting menu
+
+The pixel at coordinate **(1850, 180)** is checked. This position corresponds to the close button of Mari's Cauldron crafting panel. If the colour at that pixel is **`0xFFFFFF`** (white), a crafting menu is open.
+
+The `BypassCraftClose` toggle in `settings.ini` can force this branch to always be taken, regardless of the pixel result — useful if the close-button pixel check gives false negatives on your display.
+
+### Step 2 — Detect a Heavenly Potion craft specifically
+
+If a menu is open, the pixel at **(248, 592)** is checked. A colour of **`0xFF98DC`** (a pink/magenta tint) indicates that a Heavenly Potion craft buff is active — meaning the in-progress recipe is specifically a Heavenly Potion.
+
+### Step 3 — Close, use item, reopen
+
+With crafting state recorded, the macro:
+
+1. Clicks the crafting close button at (`CraftCloseX`, `CraftCloseY`) — defaults to **(1850, 180)**.
+2. Proceeds with the normal inventory flow to use the Biome Randomizer or Strange Controller.
+3. Closes the inventory and presses **`f`** to reopen Mari's Cauldron recipe menu (this key shortcut is specific to Mari's Cauldron).
+
+### Step 4 — Resume the Heavenly Potion recipe (if detected)
+
+If `CraftingHeavenly` was set to `true` in Step 2, the macro continues:
+
+1. Clicks the crafting recipe list at **(`HPCraftMenuX`, `HPCraftMenuY`)** to focus the recipe panel.
+2. Scrolls down **`HPScrolls`** times (default: 10) with `{WheelDown}` to reach the Heavenly Potion entry.
+3. Clicks the Heavenly Potion entry at **(`HPCraftMenuX`, `HPCraftMenuY`)**.
+4. Clicks **Open Recipe** at **(`OpenRecipeMenuX`, `OpenRecipeMenuY`)**.
+5. Adds ingredients:
+
+## Ingredients Added Automatically
+
+| Ingredient | Action |
+|---|---|
+| **Lucky Potions** | Clicks the amount field at (`HPLuckyPotionsAmountX`, `HPLuckyPotionsAmountY`), selects all with `^a`, types `HPLuckyPotionsAmount` (default: **250**), then clicks the Add button at (`HPLuckyPotionsAddX`, `HPLuckyPotionsAddY`) |
+| **Celestial** | Clicks the Add button at (`HPCelestialAddX`, `HPCelestialAddY`) **twice** with a 100 ms pause between clicks |
+| **Exotic** | Clicks the Add button at (`HPExoticAddX`, `HPExoticAddY`) **once** |
+
+After all ingredients are added, the macro clicks the **Craft** button at (`CraftButtonX`, `CraftButtonY`).
+
+## Configuration
+
+All coordinates for Heavenly Potion crafting are stored under `[Crafting\Heavenly]` in `settings.ini`. Refer to the [Coordinates page](/configuration/coordinates) for the full list of keys and their default values.
+
+The most commonly adjusted settings are:
+
+```ini
+[Crafting\Heavenly]
+HPScrolls=10
+HPCraftMenuX=1600
+HPCraftMenuY=664
+HPLuckyPotionsAmountX=1047
+HPLuckyPotionsAmountY=431
+HPLuckyPotionsAmount=250
+HPLuckyPotionsAddX=1130
+HPLuckyPotionsAddY=431
+HPCelestialAddX=1130
+HPCelestialAddY=486
+HPExoticAddX=1130
+HPExoticAddY=537
+```
+
+## BypassCraftClose Toggle
+
+Setting `BypassCraftClose=true` under `[Toggles]` makes the macro always attempt to close the crafting menu before using an item — skipping the `0xFFFFFF` pixel check entirely. Enable this if the close-button pixel check is returning false negatives and the macro is trying to open the inventory while the crafting panel is still on screen.
+
+```ini
+[Toggles]
+BypassCraftClose=false
+```
+
+<Note>
+The crafting resume feature only works with **Mari's Cauldron**. After using an item, the macro reopens the crafting interface by sending the `f` key, which is the keyboard shortcut specific to Mari's Cauldron. Other crafting stations use different shortcuts or none at all — the `f` key press will do nothing (or trigger an unrelated action) if you are at a different station.
+</Note>
+
+<Warning>
+If any coordinate in `[Crafting\Heavenly]` is misconfigured — for example, if `HPScrolls` is too low and the Heavenly Potion entry is not visible, or if the ingredient Add button coordinates are off — the macro may add the wrong quantities, skip an ingredient, or fail to click Craft. Always verify that each coordinate matches your screen layout (1080p fullscreen at 100% scale is the intended target) before relying on this feature for unattended crafting sessions.
+</Warning>

@@ -1,47 +1,80 @@
 ---
-title: "Quickstart"
-description: "Begin with a guide on the fastest path to a successful outcome"
+title: "Get Started with Sol's Biome Randomizer Macro"
+sidebarTitle: "Quickstart"
+description: "Get the Sol's Biome Randomizer Macro running and automating your Sol's RNG items in under five minutes with this step-by-step setup guide."
 ---
 
-Describe how someone begins using your product. What is the first thing they need to do? Are there any prerequisites?
-
-A quickstart should take someone from zero to using your product. They'll get a quick win and a sense of what they can accomplish.
-
-## Prerequisites
-
-Before you begin, you must have:
-
-- Requirement one (for example, Node.js 18+, a free account, an API key)
-- Requirement two (for example, a compatible device, a compatible browser, a compatible operating system)
-
-## Get started
+This guide walks you through everything needed to go from a fresh download to a fully active macro session in under five minutes. By the end you will have the macro watching your Biome Randomizer and Strange Controller cooldowns and using those items automatically while Roblox runs in the background.
 
 <Steps>
-  <Step title="Install">
-    Describe how to install your product or sign up.
+  <Step title="Download and place files">
+    **EXE users:** download `Biome randomizer.exe` and `settings.ini` from the [latest releases page](https://github.com/Flyingbacen/Sols-Biome-Randomizer-Macro/releases/latest) and put both files in the same folder.
 
-    ```bash
-    npm install your-package
-    ```
+    **AHK users:** clone or download the full repository so that `Biome randomizer.ahk`, `settings.ini`, `CaptureScreen.ahk`, `OCR.ahk`, and `CreateFormData.ahk` are all in the same directory.
+
+    See the [Installation](/installation) page for detailed instructions on either method.
   </Step>
-  <Step title="Configure">
-    Describe any setup or configuration needed before first use.
-
-    ```bash
-    your-cli init
-    ```
+  <Step title="Launch Roblox fullscreen">
+    Open Sol's RNG in Roblox and switch to fullscreen mode (default key: **F11** in the Roblox client). The default inventory and crafting coordinates in `settings.ini` are calibrated for **1920×1080 at 100% Windows display scale**. If your setup matches those values you will not need to change any coordinates. If you are on a different resolution or scale, adjust the coordinates in `settings.ini` before continuing — see [Coordinates](/configuration/coordinates).
   </Step>
-  <Step title="Run it">
-    Show the first thing a user does to see it working.
+  <Step title="Launch the macro">
+    - **EXE version:** double-click `Biome randomizer.exe`.
+    - **AHK version:** right-click `Biome randomizer.ahk` → **Run with AutoHotkey v2**.
 
-    ```bash
-    your-cli start
+    The Sol's Biome Randomizer Macro control window opens. The status label at the bottom reads **Status: stopped** and the timer labels show `--:--`.
+  </Step>
+  <Step title="Set the target window">
+    The macro needs to know which window to send keystrokes and mouse clicks to. There are two ways to set it:
+
+    **Method 1 — Ctrl+Click picker (recommended):**
+    1. Click the **Ctrl+Click = active window** button in the macro control window.
+    2. The macro enters a waiting state.
+    3. Hold **Ctrl** and click anywhere on the Roblox window.
+    4. The macro captures that window's HWND and fills it into the AFK target field automatically. A tray notification confirms the selection.
+
+    **Method 2 — Manual title entry:**
+    1. Type `Roblox` (or the exact window title) into the **AFK target (window HWND or title)** field.
+    2. Click **Apply text as HWND/title**.
+    3. A tray notification confirms the target has been set.
+
+    <Note>
+      If multiple windows contain "Roblox" in their title (for example, a browser tab), use the Ctrl+Click method to pin the macro to the specific game window by HWND rather than by title.
+    </Note>
+  </Step>
+  <Step title="Press Toggle Active">
+    Click the **Toggle Active** button. The status label immediately changes to:
+
     ```
+    Status: running
+    ```
+
+    The scheduler timer starts firing every second, checking whether either item's cooldown has elapsed and whether an AFK action is due.
+  </Step>
+  <Step title="Verify the timers are counting down">
+    Within a second or two of toggling active, the countdown labels in the control window will update from `--:--` to live MM:SS countdowns, for example:
+
+    ```
+    Biome Randomizer: 35:58
+    Strange Controller: 20:58
+    AFK action: 01:29
+    ```
+
+    When a timer reaches `00:00` the label briefly shows **Ready** before the macro acts and resets the clock. If a timer remains stuck at `--:--`, check that the scheduler is running and that the target window is reachable.
   </Step>
 </Steps>
 
-<Tip>
-  Give people a way to get help. This could be a link to a support page, a chat with a customer support agent, or a forum for your product.
+## What to Do Next
 
-  Example: Need help? Reach out to us at [support@yourcompany.com](mailto:support@yourcompany.com).
+Now that the macro is running, you can fine-tune its behaviour:
+
+- **Adjust cooldown values** — if you want to change how often each item fires, edit `BiomeRandomizerCooldownMinutes` and `StrangeControllerCooldownMinutes` in `settings.ini`, or see [Cooldowns and Toggles](/configuration/cooldowns-and-toggles) for a full explanation of every timing option.
+- **Update coordinates for your screen setup** — if clicks are landing in the wrong place because you are not on 1080p at 100% scale, see [Coordinates](/configuration/coordinates) for how to recalibrate each value.
+- **Set up Eden notifications** — to receive a Discord mention and a screenshot when Eden is detected, configure your webhook URL and user ID; see [Discord Webhook](/features/discord-webhook).
+
+<Tip>
+  Press **F12** at any time to exit the macro cleanly. This hotkey is always active regardless of the scheduler state and triggers the same shutdown routine as closing the window — all current settings are written back to `settings.ini` before the process exits.
 </Tip>
+
+<Warning>
+  Clicking **Force Biome Use** or **Force Strange Use** while the scheduler is running will immediately attempt to use that item and then reset its countdown timer to the full cooldown duration. This is useful for using an item early, but be aware that it restarts the clock from that moment — the next automatic use will be a full cooldown period later.
+</Warning>

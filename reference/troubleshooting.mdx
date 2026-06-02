@@ -1,0 +1,220 @@
+---
+title: "Troubleshooting Sol's Biome Randomizer Macro"
+sidebarTitle: "Troubleshooting"
+description: "Fix common issues with Sol's Biome Randomizer Macro including window not found errors, OCR failures, wrong click coordinates, and AFK action interference."
+---
+
+Most issues with the macro fall into one of three categories: **window targeting** (the macro cannot find or activate the Roblox window), **OCR detection** (Windows OCR cannot read the item name from the inventory slot), or **coordinate mismatch** (clicks land in the wrong place because your screen resolution or scale differs from the defaults). The steps below address each of these categories and a handful of other common situations.
+
+---
+
+<Accordion title='"Window not Found" error appears'>
+  **Cause:** The macro calls `WinExist()` with the value stored in the AFK target field. If that value is a stale HWND (from a previous session) or a title that no longer matches any open window, the check fails and a `Window not Found` message box appears.
+
+  **Fix:**
+
+  <Steps>
+    <Step title="Re-target using Ctrl+Click">
+      Make sure Roblox is open and visible, then click the **Ctrl+Click = active window** button in the macro GUI. Hold **Ctrl** and click anywhere inside the Roblox window. The macro captures the live HWND and updates the target field automatically.
+    </Step>
+    <Step title="Or target by title">
+      Type `Roblox` into the AFK target text field and press **Apply text as HWND/title**. The macro will match any window whose title contains "Roblox".
+    </Step>
+  </Steps>
+
+  <Note>
+    If you have other windows with "Roblox" in their title — for example a browser tab open to the Roblox website — title-matching may activate the wrong window. In that case, always use the **Ctrl+Click** method to target by HWND, which is unique to a single window instance.
+  </Note>
+</Accordion>
+
+<Accordion title="Items are not being used (scheduler is running but nothing happens)">
+  **Cause:** The most common cause is OCR failing to read the item name from the inventory slot rectangle defined by `RectangleTopX` / `RectangleTopY` / `RectangleWidth` / `RectangleHeight` in `settings.ini`. If `OCR.FromRect()` returns an empty string, `UseItem()` returns `false` without clicking anything and without resetting the cooldown timer.
+
+  **Possible fixes:**
+
+  1. **Check that the item is in your inventory.** The macro searches for the item by name; if you have used up all copies, OCR will find nothing.
+
+  2. **Verify the OCR rectangle coordinates** point to the correct inventory slot on your screen. The defaults assume fullscreen 1080p at 100% Windows display scale. If your setup differs, update `RectangleTopX`, `RectangleTopY`, `RectangleWidth`, and `RectangleHeight` in `settings.ini`.
+
+  3. **Bypass OCR entirely** by setting `IgnoreOCR=true` in `settings.ini`. With this flag enabled, `UseItem()` skips the OCR check and clicks the slot directly. This is less safe (it will click the slot even if the item is absent) but can confirm whether OCR is the bottleneck.
+
+     ```ini
+     [Toggles]
+     IgnoreOCR=true
+     ```
+
+  4. **Check the enable flags.** Confirm that the relevant toggles are `true` in `settings.ini`:
+
+     ```ini
+     [Toggles]
+     BiomeRandomizerEnabled=true
+     StrangeControllerEnabled=true
+     ```
+
+     If either flag is `false`, `UseItem()` returns immediately without doing anything.
+</Accordion>
+
+<Accordion title="Clicks are landing in the wrong positions / missing inventory elements">
+  **Cause:** The default coordinate values in `settings.ini` were calibrated for Roblox running in **fullscreen 1080p at 100% Windows display scale**. A different resolution, windowed mode, or a display scale other than 100% will shift every UI element and cause clicks to miss.
+
+  **Fix:**
+
+  <Steps>
+    <Step title="Identify the correct pixel positions">
+      Use a free screen coordinate tool for Windows (such as the built-in cursor position display in AutoHotkey's Window Spy, or any screen ruler utility) to find the exact pixel positions of each UI element on your setup: the inventory button, the search box, the item slot, and the Use button.
+    </Step>
+    <Step title="Update settings.ini">
+      Open `settings.ini` while the macro is **not running** and replace the default values in the `[Inventory Coordinates]` and `[Crafting]` sections with your measured positions.
+
+      ```ini
+      [Inventory Coordinates]
+      RectangleTopX=805     ; top-left X of the OCR capture rectangle (item slot)
+      RectangleTopY=424     ; top-left Y of the OCR capture rectangle
+      RectangleWidth=90     ; width of the OCR capture rectangle
+      RectangleHeight=90    ; height of the OCR capture rectangle
+      UseButtonX=683        ; X of the "Use" button inside the item detail panel
+      UseButtonY=580        ; Y of the "Use" button
+      SearchX=876           ; X of the inventory search box
+      SearchY=360           ; Y of the inventory search box
+      InventoryX=32         ; X of the inventory toggle button on the sidebar
+      InventoryY=507        ; Y of the inventory toggle button
+      InventoryItemsX=1268  ; X of the "Items" tab inside the inventory panel
+      InventoryItemsY=330   ; Y of the "Items" tab
+      ```
+    </Step>
+    <Step title="Restart the macro">
+      Save `settings.ini` and relaunch the macro so the new values are loaded.
+    </Step>
+  </Steps>
+
+  For a full description of every coordinate key, see the [Configuration: Coordinates](/configuration/coordinates) reference page.
+</Accordion>
+
+<Accordion title="The macro keeps interrupting what I'm doing on my computer">
+  **Cause:** Both `UseItem()` and `DoAFK()` call `WinActivate()` to bring the Roblox window into focus, which briefly steals keyboard and mouse control from whatever you are doing on the same machine.
+
+  **Fix options:**
+
+  - **Increase `AFKIntervalMinutes`** to reduce how often the AFK action fires (at the cost of a higher chance of being kicked for inactivity). The item cooldowns are fixed by the game, so only the AFK interval is adjustable for frequency.
+
+    ```ini
+    [Cooldowns]
+    AFKIntervalMinutes=5
+    ```
+
+  - **Run the macro on a dedicated machine or virtual machine.** Because the macro requires window focus, the cleanest solution for uninterrupted work on your main PC is to run Roblox and the macro on a separate session entirely.
+
+  <Warning>
+    Lowering `AFKIntervalMinutes` too aggressively (below roughly 1–2 minutes) may cause the macro to spend more time performing AFK actions than waiting, which can interfere with item use timing.
+  </Warning>
+</Accordion>
+
+<Accordion title='The AHK script says "AutoHotkey v2 required" or fails to load'>
+  **Cause:** The script begins with `#Requires AutoHotkey v2.0`. If you launch it with AutoHotkey v1 (which uses a different syntax), the interpreter will reject it immediately.
+
+  **Fix:**
+
+  <Steps>
+    <Step title="Download AutoHotkey v2">
+      Go to [https://www.autohotkey.com](https://www.autohotkey.com) and download the latest v2 installer.
+    </Step>
+    <Step title="Install AutoHotkey v2">
+      Run the installer. You can keep AutoHotkey v1 installed alongside v2 — they coexist without conflict.
+    </Step>
+    <Step title="Associate .ahk files with v2">
+      During installation, choose to associate `.ahk` files with the v2 runtime. Alternatively, right-click `Biome randomizer.ahk`, choose **Open with**, and select the AutoHotkey v2 executable.
+    </Step>
+  </Steps>
+</Accordion>
+
+<Accordion title="Discord webhook is not sending notifications">
+  **Cause:** There are two common reasons — either the `DiscordWebhookURL` value in `settings.ini` is empty or malformed, or Eden is not being detected by OCR (since the webhook fires only when `CheckEden()` finds `"eden"` or `"contract"` in a full-window OCR scan).
+
+  **Fix:**
+
+  1. **Verify the webhook URL** is correctly set in `settings.ini`:
+
+     ```ini
+     [Discord Webhook]
+     DiscordWebhookURL=https://discord.com/api/webhooks/YOUR_ID/YOUR_TOKEN
+     DiscordUserID=YOUR_DISCORD_USER_ID
+     ```
+
+     Test the URL independently using a tool like Postman, `curl`, or [Discord's webhook tester](https://discordapp.com/developers/docs/resources/webhook) to confirm it accepts POST requests.
+
+  2. **Check internet access.** The macro uses `WinHttp.WinHttpRequest.5.1` to make the POST request. Firewalls or proxies that block outbound HTTPS will silently prevent delivery.
+
+  3. **Understand the trigger.** The Eden detection webhook fires only when `CheckEden()` (called 5 seconds after every AFK action) reads the word `"eden"` or `"contract"` — or a fuzzy match within Levenshtein distance 3 — from a full OCR scan of the Roblox window. If Eden is not currently active in-game, or if the OCR scan misses the text, no webhook will be sent. This feature is noted as **untested** in the project README.
+</Accordion>
+
+<Accordion title="Settings I changed in settings.ini are not being applied">
+  **Cause:** The macro reads `settings.ini` once at startup and holds all values in memory. When it exits (via the X button or F12), it writes its in-memory values back to disk — overwriting any edits you made while it was running.
+
+  **Fix:** Always edit `settings.ini` while the macro is **not running**.
+
+  <Steps>
+    <Step title="Close the macro">
+      Click the GUI's X button or press **F12** to exit.
+    </Step>
+    <Step title="Edit settings.ini">
+      Open `settings.ini` in any text editor and make your changes.
+    </Step>
+    <Step title="Relaunch the macro">
+      Start `Biome randomizer.ahk` (or `.exe`) again. It will read the updated file on startup.
+    </Step>
+  </Steps>
+</Accordion>
+
+<Accordion title="The macro exits immediately / script errors on launch">
+  **Cause:** The AHK version of the script uses `#Include` directives to load three helper files at startup:
+
+  ```ahk
+  #Include OCR.ahk
+  #Include CaptureScreen.ahk
+  #Include CreateFormData.ahk
+  ```
+
+  If any of these files are missing from the same directory as `Biome randomizer.ahk`, AutoHotkey cannot compile the script and exits with an error.
+
+  **Fix:** Ensure all five files are present in the same folder:
+
+  ```
+  📁 your-folder/
+  ├── Biome randomizer.ahk
+  ├── settings.ini
+  ├── OCR.ahk
+  ├── CaptureScreen.ahk
+  └── CreateFormData.ahk
+  ```
+
+  <Note>
+    The **EXE version** bundles `OCR.ahk`, `CaptureScreen.ahk`, and `CreateFormData.ahk` internally via AutoHotkey's `FileInstall` directive and extracts them to the system temp folder at runtime. If you are using the EXE, only `settings.ini` needs to be in the same folder as the executable.
+  </Note>
+</Accordion>
+
+---
+
+## General Debugging Tips
+
+If the issues above do not resolve your problem, the following techniques provide deeper visibility into what the macro is doing at runtime.
+
+**Use DebugView to see real-time output.** The macro contains `OutputDebug()` calls throughout its core functions. You can capture these messages using [DebugView](https://learn.microsoft.com/en-us/sysinternals/downloads/debugview) from Microsoft Sysinternals (free download). Launch DebugView before starting the macro and watch for lines like:
+
+```
+[AHK] Scheduler: performing AFK
+[AHK] Using Biome Randomizer
+[AHK] OCR text: Biome Randomizer
+[AHK] DoAFK completed on target: ahk_id 2689318
+```
+
+These messages confirm which branch of the scheduler fired, what OCR actually read from the screen, and whether the AFK action completed successfully. Empty or unexpected OCR text is the most common indicator that coordinates need adjustment.
+
+**Watch for the Scheduler error dialog.** The `Scheduler()` function wraps its entire body in a `try / catch` block:
+
+```ahk
+} catch as e {
+    MsgBox("Scheduler error: " e.Message " at line " e.Line)
+}
+```
+
+If an unhandled exception occurs during a scheduler tick, a message box will appear with the error message and the line number where it occurred. Note both values when reporting a bug, as they identify exactly which operation failed.

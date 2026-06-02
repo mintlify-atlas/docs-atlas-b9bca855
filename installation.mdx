@@ -1,0 +1,75 @@
+---
+title: "Install Sol's Biome Randomizer Macro on Windows"
+sidebarTitle: "Installation"
+description: "Install the Sol's Biome Randomizer Macro using the precompiled EXE or the AutoHotkey v2 source files. Both methods require settings.ini in the same folder."
+---
+
+The macro is distributed in two forms: a precompiled EXE that bundles the AutoHotkey v2 runtime (no separate installation required), and the raw AHK source that you run directly under AutoHotkey v2. Both forms share the same `settings.ini` file for configuration and must have it present in the same folder at launch.
+
+<Tabs>
+  <Tab title="EXE Version">
+    <Steps>
+      <Step title="Download the EXE">
+        Go to the [latest releases page](https://github.com/Flyingbacen/Sols-Biome-Randomizer-Macro/releases/latest) and download `Biome randomizer.exe`.
+      </Step>
+      <Step title="Download settings.ini">
+        From the same releases page (or directly from the repository), download `settings.ini` and place it in the same folder as the EXE. The macro reads all configuration from this file at startup and will not run without it.
+      </Step>
+      <Step title="Place both files in the same folder">
+        Your folder should look like this:
+
+        ```
+        SolsMacro/
+        ├── Biome randomizer.exe
+        └── settings.ini
+        ```
+      </Step>
+      <Step title="Launch the macro">
+        Double-click `Biome randomizer.exe`. The control window will open immediately. No installer or administrator privileges are required.
+      </Step>
+    </Steps>
+  </Tab>
+  <Tab title="AHK Source Version">
+    <Steps>
+      <Step title="Install AutoHotkey v2">
+        Download and install **AutoHotkey v2** from [autohotkey.com](https://www.autohotkey.com). The macro uses `#Requires AutoHotkey v2.0` and will not run under AHK v1.
+      </Step>
+      <Step title="Clone or download the repository">
+        Download the repository as a ZIP from GitHub and extract it, or clone it with Git:
+
+        ```bash
+        git clone https://github.com/Flyingbacen/Sols-Biome-Randomizer-Macro.git
+        ```
+      </Step>
+      <Step title="Confirm all files are in the same folder">
+        The script uses `#Include` directives to load its helper libraries at runtime. All five files must be in the same directory:
+
+        ```
+        SolsMacro/
+        ├── Biome randomizer.ahk
+        ├── settings.ini
+        ├── CaptureScreen.ahk
+        ├── OCR.ahk
+        └── CreateFormData.ahk
+        ```
+      </Step>
+      <Step title="Run the script">
+        Right-click `Biome randomizer.ahk` and choose **Run with AutoHotkey v2** (or whichever AutoHotkey v2 option appears in the context menu). The control window will open and the macro will read `settings.ini` from the same directory.
+      </Step>
+    </Steps>
+  </Tab>
+</Tabs>
+
+<Note>
+  The AHK source version uses `#Include OCR.ahk`, `#Include CaptureScreen.ahk`, and `#Include CreateFormData.ahk` at the top of the script. If any of those files is missing or in a different folder, AutoHotkey will throw a file-not-found error at launch. Keep all files together in one directory.
+</Note>
+
+## Required Files
+
+| File | Version | Description |
+|---|---|---|
+| `Biome randomizer.ahk` / `Biome randomizer.exe` | Both | The main script (AHK version) or compiled executable (EXE version). Entry point for the entire macro. |
+| `settings.ini` | Both | Stores all configuration: inventory coordinates, crafting coordinates, cooldown values, AFK interval, toggles, and Discord webhook details. Written back to disk on exit. |
+| `CaptureScreen.ahk` | AHK only | Screen-capture helper library used to take a PNG screenshot of the Roblox window for upload when Eden is detected. |
+| `OCR.ahk` | AHK only | Wrapper around the Windows OCR engine (`Windows.Media.Ocr`). Used to read inventory item names and detect Eden on-screen. |
+| `CreateFormData.ahk` | AHK only | Builds the multipart/form-data request body used when uploading screenshot files to Catbox. |

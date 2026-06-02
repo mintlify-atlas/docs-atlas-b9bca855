@@ -1,0 +1,91 @@
+---
+title: "Cooldown Scheduler: How Item Automation Works"
+sidebarTitle: "Scheduler"
+description: "The Sol's Biome Randomizer Macro scheduler runs every second to check item cooldowns, resolve conflicts when both items are ready, and avoid re-entrant execution."
+---
+
+The scheduler is the central automation loop of the macro. Once activated via the **Toggle Active** button, it fires every 1,000 ms using AutoHotkey's `SetTimer`, checks how much time has elapsed since each item was last used, and executes item-use or AFK actions as needed. Everything else in the macro — cooldown tracking, GUI updates, crafting resume — flows outward from this single recurring function.
+
+## How It Works
+
+The `Scheduler()` function runs on a fixed `SchedulerIntervalMs` of **1,000 ms** (one second). Each time it fires it works through a strict priority chain:
+
+### Re-entrancy guard
+
+The very first thing `Scheduler()` does is stop its own timer with `SetTimer(Scheduler, 0)`. This prevents a second invocation from overlapping if an action (e.g. opening the inventory and clicking through menus) takes longer than one second to complete. The timer is unconditionally restarted at the end of the function — or on the `return` path after an AFK action — so the interval remains consistent.
+
+### Priority order
+
+1. **AFK check first.** If `(now - lastAFK) >= AFKIntervalMs`, the AFK action fires immediately regardless of item cooldowns. After `DoAFK()` returns, `lastAFK` is updated and the scheduler returns early, deferring item checks to the next cycle.
+2. **Both items ready.** If both the Biome Randomizer and Strange Controller cooldowns have elapsed simultaneously, the macro uses the **Strange Controller first**, sleeps 500 ms, then uses the **Biome Randomizer**. Timestamps are updated individually after each successful use.
+3. **Only Biome Randomizer ready.** `UseItem("Biome Randomizer")` is called; on success `lastUsedBiome` is updated.
+4. **Only Strange Controller ready.** `UseItem("Strange Controller")` is called; on success `lastUsedStrange` is updated.
+
+If a disabled item's `UseItem()` call returns `false` (because the toggle is off), the timestamp is **not** updated, so the scheduler will try again next second without artificially resetting the cooldown.
+
+The full top-level scheduler logic:
+
+```ahk
+Scheduler() {
+    ; Prevent re-entrancy: stop the timer while running
+    SetTimer(Scheduler, 0)
+    try {
+        now := A_TickCount
+
+        if ((now - lastAFK) >= AFKIntervalMs) {
+            if (DoAFK())
+                lastAFK := A_TickCount
+            SetTimer(Scheduler, SchedulerIntervalMs)
+            return
+        }
+
+        biomeReady := (now - lastUsedBiome) >= BiomeCooldownMs
+        strangeReady := (now - lastUsedStrange) >= StrangeCooldownMs
+
+        if (biomeReady && strangeReady) {
+            if (UseItem("Strange Controller"))
+                lastUsedBiome := A_TickCount
+            Sleep(500)
+            if (UseItem("Biome Randomizer"))
+                lastUsedStrange := A_TickCount
+        } else if (biomeReady) {
+            if (UseItem("Biome Randomizer"))
+                lastUsedBiome := A_TickCount
+        } else if (strangeReady) {
+            if (UseItem("Strange Controller"))
+                lastUsedStrange := A_TickCount
+        }
+    } catch as e {
+        MsgBox("Scheduler error: " e.Message " at line " e.Line)
+    }
+    SetTimer(Scheduler, SchedulerIntervalMs)
+}
+```
+
+Any unhandled error inside the `try` block surfaces as a `MsgBox` so you can identify the line that failed without the macro silently dying.
+
+## Cooldown Tracking
+
+All three timestamps — `lastUsedBiome`, `lastUsedStrange`, and `lastAFK` — are stored in memory as **millisecond tick counts** (`A_TickCount`). Cooldown durations are loaded from `settings.ini` in minutes and converted to milliseconds at startup:
+
+```ahk
+BiomeCooldownMs   := BiomeRandomizerCooldownMinutes   * 60 * 1000
+StrangeCooldownMs := StrangeControllerCooldownMinutes * 60 * 1000
+AFKIntervalMs     := AFKIntervalMinutes               * 60 * 1000
+```
+
+The GUI countdown labels (`Biome Randomizer: MM:SS`, `Strange Controller: MM:SS`, `AFK action: MM:SS`) are refreshed by a **separate `UpdateGui` timer** that also fires every 1,000 ms. This keeps the display responsive without coupling it to the scheduler's own execution time. The labels show **"Ready"** when the remaining time drops to zero or below.
+
+## Force Actions
+
+Each item and the AFK action has a corresponding **Force** button in the GUI:
+
+- **Force Biome Use** — calls `UseItem("Biome Randomizer")` immediately and, on success, sets `lastUsedBiome := A_TickCount`.
+- **Force Strange Use** — calls `UseItem("Strange Controller")` immediately and resets `lastUsedStrange`.
+- **Force AFK** — calls `DoAFK()` immediately and resets `lastAFK`.
+
+Force buttons bypass the scheduler's cooldown check entirely. Use them whenever you trigger an item manually inside the game — for example, if you use a Biome Randomizer yourself without the macro — so the internal timer resets to match reality. Without pressing Force, the macro will think the cooldown hasn't started yet and may use the item again too early.
+
+<Note>
+Cooldown state is **not persisted** between sessions. Every time you launch the macro, `lastUsedBiome`, `lastUsedStrange`, and `lastAFK` all initialise to `0`. Because `A_TickCount` starts well above zero, the very first scheduler cycle will see all three as immediately ready and use both items (and fire an AFK action) right away. Use the Force buttons or simply wait for the actual in-game cooldowns before toggling the macro on if you have recently used the items.
+</Note>

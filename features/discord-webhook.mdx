@@ -1,0 +1,82 @@
+---
+title: "Discord Webhook Notifications for Eden Detection"
+sidebarTitle: "Discord Webhook"
+description: "Configure a Discord webhook in settings.ini to receive ping notifications with a screenshot when Sol's RNG Eden is detected by the macro's OCR scan."
+---
+
+The macro can send a Discord webhook message — complete with an embedded screenshot — when its post-AFK OCR scan detects the word "eden" or "contract" on screen. This means you can leave the macro running unattended and receive an alert the moment Eden appears in your game session, without having to watch the screen yourself.
+
+## Setting Up the Webhook
+
+<Steps>
+  <Step title="Create a webhook in Discord">
+    Open your Discord server, go to **Server Settings → Integrations → Webhooks**, and click **New Webhook**. Give it a name and select the channel where you want notifications to appear.
+  </Step>
+  <Step title="Copy the webhook URL">
+    Click **Copy Webhook URL**. The URL will look like:
+    `https://discord.com/api/webhooks/YOUR_WEBHOOK_ID/YOUR_WEBHOOK_TOKEN`
+  </Step>
+  <Step title="Add the URL to settings.ini">
+    Open `settings.ini` and paste the URL as the value of `DiscordWebhookURL` under the `[Discord Webhook]` section:
+
+    ```ini
+    [Discord Webhook]
+    DiscordWebhookURL=https://discord.com/api/webhooks/YOUR_WEBHOOK_ID/YOUR_WEBHOOK_TOKEN
+    DiscordUserID=123456789012345678
+    ```
+  </Step>
+  <Step title="Set your Discord user ID (optional)">
+    Set `DiscordUserID` to your numeric Discord user ID to receive a **@mention** in the notification message. Leave it empty to receive the embed without a ping.
+  </Step>
+  <Step title="Save and restart the macro">
+    Save `settings.ini` and relaunch `Biome randomizer.ahk` (or the `.exe`). Settings are read at startup, so a restart is required for changes to take effect.
+  </Step>
+</Steps>
+
+## What Triggers the Notification
+
+Eden detection is not a continuous background scan — it is tied directly to the AFK action cycle:
+
+1. Every time `DoAFK()` runs, it schedules `CheckEden()` to fire **5 seconds later** via a one-shot timer (`SetTimer(CheckEden, -5000)`).
+2. `CheckEden()` calls `OCR.FromWindow()` on the Roblox window with `{lang: "en-US", scale: 2, grayscale: true, invertcolors: true}` to capture all visible text.
+3. The full text is checked for:
+   - An exact (case-insensitive) substring `"eden"`
+   - An exact (case-insensitive) substring `"contract"`
+   - A fuzzy match on `"contract"` with Levenshtein distance **≤ 3** (catches OCR misreads like `"cantract"`)
+4. If any condition is true, the macro treats Eden as detected and proceeds to:
+   - Activate the Roblox window.
+   - Click the **merchant dialogue skip button** (`MerchantDialogueSkipX`, `MerchantDialogueSkipY`) 10 times.
+   - Click the **left dialogue option** (`MerchantDialogueLeftX`, `MerchantDialogueLeftY`) 10 times, with 1-second pauses, to advance through Eden's dialogue.
+   - Capture a screenshot of the Roblox window and save it locally.
+   - Upload the screenshot to [catbox.moe](https://catbox.moe) to obtain a public image URL.
+   - POST the Discord webhook with the embed.
+
+## What the Webhook Message Contains
+
+The webhook payload is a Discord embed with the following fields:
+
+| Field | Value |
+|---|---|
+| Content | `<@DiscordUserID>` mention (if `DiscordUserID` is set) |
+| Embed title | `"Eden Detection detected"` |
+| Embed colour | `#0F0ECF` (blue-purple, hex `986895` in decimal) |
+| Timestamp | Current UTC time in ISO 8601 format |
+| Embedded image | Screenshot uploaded to catbox.moe |
+
+## settings.ini Keys
+
+<ParamField path="DiscordWebhookURL" type="string" default="">
+  The full webhook URL copied from Discord's Integrations page. Leave empty to disable webhook notifications entirely.
+</ParamField>
+
+<ParamField path="DiscordUserID" type="string" default="">
+  Your Discord user ID as a numeric string (e.g. `123456789012345678`). Used to construct a `<@ID>` mention in the webhook content field. Leave empty for no mention.
+</ParamField>
+
+<Warning>
+Eden detection is noted as **"untested"** in the project README. Detection accuracy depends on the Windows OCR engine successfully reading the on-screen text in your specific game window configuration. Results may vary — the macro may miss Eden appearances or, in rare cases, trigger a false positive if unrelated on-screen text closely resembles "eden" or "contract".
+</Warning>
+
+<Note>
+To find your Discord user ID, enable **Developer Mode** in Discord: go to **User Settings → Advanced → Developer Mode** and toggle it on. Then right-click your username anywhere in Discord and select **Copy User ID**. The copied value is a numeric string — paste it directly into `settings.ini` as the `DiscordUserID` value.
+</Note>

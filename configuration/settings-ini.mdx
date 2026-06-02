@@ -1,0 +1,100 @@
+---
+title: "settings.ini Configuration File Reference"
+sidebarTitle: "settings.ini"
+description: "Complete reference for all settings.ini sections and keys in Sol's Biome Randomizer Macro, covering coordinates, cooldowns, toggles, and Discord webhook setup."
+---
+
+`settings.ini` is the single configuration file for Sol's Biome Randomizer Macro. It lives in the same directory as the script (or EXE) and is read once at startup to populate every coordinate, cooldown, toggle, and webhook value the macro uses. When the macro exits — either by closing the GUI window or pressing <kbd>F12</kbd> — all in-memory values are written back to `settings.ini` via AutoHotkey's `IniWrite`. This means any live changes made through the GUI (such as toggling an item on or off) are automatically persisted without any manual save step.
+
+<Note>
+  Settings are saved automatically when you close the GUI or press <kbd>F12</kbd>. If you edit `settings.ini` by hand while the macro is running, those changes **will be overwritten** when the macro exits, because the running process holds the authoritative copy of each value in memory. Always edit `settings.ini` while the macro is not running, or restart the macro after making manual changes.
+</Note>
+
+## Full annotated settings.ini
+
+```ini
+; ─── Inventory Coordinates ───────────────────────────────────────────────────
+; Pixel positions for the OCR scan region and UI interaction points.
+; Defaults target fullscreen 1080p at 100% Windows display scale.
+[Inventory Coordinates]
+RectangleTopX=805          ; Top-left X of the OCR scan rectangle
+RectangleTopY=424          ; Top-left Y of the OCR scan rectangle
+RectangleWidth=90           ; Width of the OCR scan rectangle in pixels
+RectangleHeight=90          ; Height of the OCR scan rectangle in pixels
+UseButtonX=683              ; X coordinate of the item Use button
+UseButtonY=580              ; Y coordinate of the item Use button
+SearchX=876                 ; X coordinate of the inventory search box
+SearchY=360                 ; Y coordinate of the inventory search box
+InventoryX=32               ; X coordinate of the inventory toggle button
+InventoryY=507              ; Y coordinate of the inventory toggle button
+InventoryItemsX=1268        ; X coordinate of the inventory Items tab
+InventoryItemsY=330         ; Y coordinate of the inventory Items tab
+MerchantDialogueSkipX=948   ; X to skip merchant (Eden) dialogue
+MerchantDialogueSkipY=837   ; Y to skip merchant dialogue
+MerchantDialogueLeftX=778   ; X for the left choice in merchant menus
+MerchantDialogueLeftY=912   ; Y for the left choice in merchant menus
+
+; ─── Crafting ────────────────────────────────────────────────────────────────
+; Positions for opening, navigating, and closing the crafting UI.
+[Crafting]
+CraftCloseX=1850            ; X to close an open crafting menu
+CraftCloseY=180             ; Y to close the crafting menu
+OpenRecipeMenuX=229         ; X to open the crafting recipe menu
+OpenRecipeMenuY=825         ; Y to open the crafting recipe menu
+CraftButtonX=1079           ; X of the Craft button
+CraftButtonY=686            ; Y of the Craft button
+
+; ─── Crafting\Heavenly ───────────────────────────────────────────────────────
+; Only used when the macro detects an active Heavenly Potion crafting session.
+[Crafting\Heavenly]
+HPScrolls=10                ; Scroll-down steps to reach Heavenly Potion in the list
+HPCraftMenuX=1600           ; X position of Heavenly Potion in the crafting menu
+HPCraftMenuY=840            ; Y position of Heavenly Potion in the crafting menu
+HPLuckyPotionsAmountX=1047  ; X of the Lucky Potions amount input field
+HPLuckyPotionsAmountY=431   ; Y of the Lucky Potions amount input field
+HPLuckyPotionsAmount=250    ; Number of Lucky Potions to enter
+HPLuckyPotionsAddX=1130     ; X of the Lucky Potions add button
+HPLuckyPotionsAddY=431      ; Y of the Lucky Potions add button
+HPCelestialAddX=1130        ; X of the Celestial ingredient add button
+HPCelestialAddY=486         ; Y of the Celestial ingredient add button
+HPExoticAddX=1130           ; X of the Exotic ingredient add button
+HPExoticAddY=537            ; Y of the Exotic ingredient add button
+
+; ─── Toggles ─────────────────────────────────────────────────────────────────
+; Feature flags. Values must be the lowercase strings "true" or "false".
+[Toggles]
+BypassCraftClose=false      ; Skip the crafting-menu close step
+BiomeRandomizerEnabled=true ; Automate Biome Randomizer use
+StrangeControllerEnabled=true ; Automate Strange Controller use
+IgnoreOCR=false             ; Click item slot without OCR verification
+
+; ─── Cooldowns ───────────────────────────────────────────────────────────────
+; Minutes to wait between each automated action. Decimals are supported.
+[Cooldowns]
+BiomeRandomizerCooldownMinutes=36
+StrangeControllerCooldownMinutes=21
+AFKIntervalMinutes=1.5
+
+; ─── Discord Webhook ─────────────────────────────────────────────────────────
+; Leave blank to disable Discord notifications entirely.
+[Discord Webhook]
+DiscordWebhookURL=
+DiscordUserID=
+```
+
+## Section overview
+
+The file is divided into six sections. Each is covered in detail on dedicated pages:
+
+| Section | What it controls | Reference |
+|---|---|---|
+| `[Inventory Coordinates]` | OCR scan rectangle, item Use button, search box, inventory tab, merchant dialogue | [Coordinates](/configuration/coordinates) |
+| `[Crafting]` | Positions for opening, navigating, and closing the crafting menu | [Coordinates](/configuration/coordinates) |
+| `[Crafting\Heavenly]` | Ingredient amounts and click targets for Heavenly Potion automation | [Coordinates](/configuration/coordinates) |
+| `[Toggles]` | Per-feature on/off flags and behaviour overrides | [Cooldowns & Toggles](/configuration/cooldowns-and-toggles) |
+| `[Cooldowns]` | Minutes between Biome Randomizer, Strange Controller, and AFK actions | [Cooldowns & Toggles](/configuration/cooldowns-and-toggles) |
+| `[Discord Webhook]` | Webhook URL and user ID for Eden-detection notifications | [Discord Webhook](/features/discord-webhook) |
+
+<Tip>
+  The `[Crafting\Heavenly]` section is only relevant if you use the Heavenly Potion crafting feature. If you do not craft Heavenly Potions, those keys have no effect and can be left at their defaults.
+</Tip>

@@ -1,0 +1,172 @@
+---
+title: "GUI Controls Reference for the Biome Randomizer Macro"
+sidebarTitle: "GUI Controls"
+description: "Reference for every button, label, and input field in the Sol's Biome Randomizer Macro interface, including keyboard shortcuts and what each control does."
+---
+
+The macro presents a small GUI window as soon as it launches. Built with AutoHotkey v2's `Gui` class, the window gives you a live view of each item's cooldown countdown, a status indicator for the scheduler, controls to set the target Roblox window, and buttons to force or toggle each automation action. All controls are visible in a single compact panel — no tabs or sub-menus.
+
+<Note>
+  The macro saves every setting back to `settings.ini` automatically when the GUI is closed — either by clicking the window's **X** button or by pressing **F12**. You do not need to manually save anything.
+</Note>
+
+<Tip>
+  If you use an item manually in-game before the scheduler would have triggered it, press the corresponding **Force** button immediately afterward. This resets that item's timer so the scheduler won't try to use it again right away, avoiding an unwanted double-use.
+</Tip>
+
+---
+
+## Status Labels
+
+These four read-only text labels sit at the top of the GUI and refresh every second via a recurring 1 000 ms timer.
+
+<Accordion title="Biome Randomizer: MM:SS">
+  Displays the time remaining until the macro will next use the Biome Randomizer item.
+
+  | Displayed value | Meaning |
+  |---|---|
+  | `MM:SS` (e.g. `35:47`) | Cooldown in progress; seconds remaining shown as minutes and seconds |
+  | `Ready` | Cooldown has elapsed; item will be used on the next scheduler tick |
+  | `Disabled` | `BiomeRandomizerEnabled` is `false`; the item will not be used until re-enabled |
+
+  The underlying cooldown duration is controlled by `BiomeRandomizerCooldownMinutes` in `settings.ini` (default: `36` minutes).
+</Accordion>
+
+<Accordion title="Strange Controller: MM:SS">
+  Displays the time remaining until the macro will next use the Strange Controller item. Behaves identically to the Biome Randomizer label.
+
+  | Displayed value | Meaning |
+  |---|---|
+  | `MM:SS` | Cooldown in progress |
+  | `Ready` | Will be used on the next scheduler tick |
+  | `Disabled` | `StrangeControllerEnabled` is `false` |
+
+  The underlying cooldown duration is controlled by `StrangeControllerCooldownMinutes` in `settings.ini` (default: `21` minutes).
+</Accordion>
+
+<Accordion title="AFK action: MM:SS">
+  Displays the time remaining until the macro performs its next AFK action (sending `Space`, `E`, and `F` keypresses, followed by a click at the Eden dialogue position).
+
+  | Displayed value | Meaning |
+  |---|---|
+  | `MM:SS` | Time until the next AFK action fires |
+  | `Ready` | AFK interval has elapsed; action will run on the next scheduler tick |
+
+  The interval is set by `AFKIntervalMinutes` in `settings.ini` (default: `1.5` minutes). The AFK action always takes priority in the scheduler — if it is due at the same time as an item use, the AFK action runs first.
+</Accordion>
+
+<Accordion title="Status: stopped / running">
+  Shows whether the automation scheduler is currently active.
+
+  | Displayed value | Meaning |
+  |---|---|
+  | `Status: stopped` | Scheduler is paused; no automated actions will occur |
+  | `Status: running` | Scheduler is active and checking cooldowns every second |
+
+  This label is updated by the **Toggle Active** button.
+</Accordion>
+
+---
+
+## AFK Target Controls
+
+These controls let you tell the macro which window to send keystrokes and clicks to.
+
+<Accordion title="AFK target text field">
+  A single-line edit field that shows the current target window identifier. The value can be either:
+
+  - A **numeric HWND** (e.g. `2689318`) — set automatically when you use the **Ctrl+Click** button
+  - A **window title substring** (e.g. `Roblox`) — matched against open windows using AutoHotkey's `WinExist()` function
+
+  The field refreshes every second from the internal `TargetWindow` variable. You can type directly into it and then press **Apply text as HWND/title** to apply the change.
+
+  ```ini
+  ; Default value loaded from memory (not stored in settings.ini)
+  TargetWindow := "Roblox"
+  ```
+</Accordion>
+
+<Accordion title="Apply text as HWND/title button">
+  Reads whatever is currently typed in the AFK target text field and sets it as `TargetWindow`. A Windows tray notification confirms the new target:
+
+  > *Target set to: `<value>`*
+
+  Use this when you want to target a window by title substring (e.g. `Roblox`) or when you have pasted a known HWND manually.
+</Accordion>
+
+<Accordion title="Ctrl+Click = active window button">
+  Waits for you to hold **Ctrl** and click on any open window, then captures that window's HWND and sets it as the target. A tray tip appears confirming both the HWND and the window's title:
+
+  > *Target window HWND: `<hwnd>` with window title: `<title>`*
+
+  After capturing, the macro GUI is brought back into focus automatically.
+
+  This method is more reliable than title-matching when other windows might contain the word "Roblox" (e.g. a browser tab open to the Roblox website), because HWNDs are unique per window instance.
+
+  **How to use it:**
+  1. Click the **Ctrl+Click = active window** button in the GUI.
+  2. Hold **Ctrl** on your keyboard.
+  3. While holding Ctrl, click anywhere inside the Roblox window.
+  4. Release — the tray tip confirms the captured target.
+</Accordion>
+
+---
+
+## Action Buttons
+
+<Accordion title="Toggle Active">
+  Starts or stops the automation scheduler.
+
+  - When the scheduler is **stopped**, clicking this button calls `SetTimer(Scheduler, 1000)` and updates the status label to `Status: running`.
+  - When the scheduler is **running**, clicking this button calls `SetTimer(Scheduler, 0)` to cancel it and updates the status label to `Status: stopped`.
+
+  The scheduler checks cooldowns every 1 000 ms and uses items or performs AFK actions as needed.
+</Accordion>
+
+<Accordion title="Force AFK">
+  Immediately executes the AFK action sequence regardless of the current timer, then resets the AFK countdown as if the action had just fired on schedule.
+
+  The AFK sequence consists of:
+  1. Activating the target window
+  2. Sending `{Space 3}`, `{e 3}`, `{f 3}` keypresses
+  3. Moving the mouse to the Eden dialogue position (`778, 912`) and clicking
+  4. Returning the mouse to its original position and reactivating the previously active window
+
+  Use this if you need to manually confirm an in-game dialogue or reset your AFK timer at an arbitrary time.
+</Accordion>
+
+<Accordion title="Force Biome Use">
+  Immediately calls `UseItem("Biome Randomizer")` and, if the item is successfully used, resets the Biome Randomizer cooldown timer to the current moment.
+
+  If the item is not found in the inventory slot (OCR returns no match), the timer is **not** reset — the label will continue counting down from wherever it was.
+</Accordion>
+
+<Accordion title="Toggle Biome Use">
+  Flips the `BiomeRandomizerEnabled` flag between `true` and `false`.
+
+  - When **disabled**, the scheduler skips Biome Randomizer entirely and the status label shows `Biome Randomizer: Disabled`.
+  - When **re-enabled**, the countdown resumes from where the internal timer left off.
+
+  The flag is saved to `settings.ini` as `BiomeRandomizerEnabled` when the macro exits.
+</Accordion>
+
+<Accordion title="Force Strange Use">
+  Immediately calls `UseItem("Strange Controller")` and, if successful, resets the Strange Controller cooldown timer to the current moment.
+
+  Behaves identically to **Force Biome Use** but for the Strange Controller item.
+</Accordion>
+
+<Accordion title="Toggle Strange Use">
+  Flips the `StrangeControllerEnabled` flag between `true` and `false`.
+
+  - When **disabled**, the scheduler skips Strange Controller and the status label shows `Strange Controller: Disabled`.
+  - The flag is saved to `settings.ini` as `StrangeControllerEnabled` on exit.
+</Accordion>
+
+---
+
+## Keyboard Shortcuts
+
+| Key | Action |
+|-----|--------|
+| `F12` | Immediately exits the application. The `OnExit` handler fires first, writing all current settings back to `settings.ini` before `ExitApp()` is called. This shortcut is exempt from AHK's `Suspend` state (`#SuspendExempt true`) and will always work regardless of whether the scheduler is running. |
