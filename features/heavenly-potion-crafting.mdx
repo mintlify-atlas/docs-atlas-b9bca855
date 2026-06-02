@@ -32,8 +32,8 @@ With crafting state recorded, the macro:
 
 If `CraftingHeavenly` was set to `true` in Step 2, the macro continues:
 
-1. Clicks the crafting recipe list at **(`HPCraftMenuX`, `HPCraftMenuY`)** to focus the recipe panel.
-2. Scrolls down **`HPScrolls`** times (default: 10) with `{WheelDown}` to reach the Heavenly Potion entry.
+1. Clicks at the computed position `(Integer(A_ScreenWidth / 1.2), A_ScreenHeight // 2)` to focus the crafting recipe list panel.
+2. Scrolls down **10** steps with `Send("{WheelDown 10}")` to reach the Heavenly Potion entry.
 3. Clicks the Heavenly Potion entry at **(`HPCraftMenuX`, `HPCraftMenuY`)**.
 4. Clicks **Open Recipe** at **(`OpenRecipeMenuX`, `OpenRecipeMenuY`)**.
 5. Adds ingredients:
@@ -58,7 +58,7 @@ The most commonly adjusted settings are:
 [Crafting\Heavenly]
 HPScrolls=10
 HPCraftMenuX=1600
-HPCraftMenuY=664
+HPCraftMenuY=840
 HPLuckyPotionsAmountX=1047
 HPLuckyPotionsAmountY=431
 HPLuckyPotionsAmount=250
@@ -84,5 +84,5 @@ The crafting resume feature only works with **Mari's Cauldron**. After using an 
 </Note>
 
 <Warning>
-If any coordinate in `[Crafting\Heavenly]` is misconfigured — for example, if `HPScrolls` is too low and the Heavenly Potion entry is not visible, or if the ingredient Add button coordinates are off — the macro may add the wrong quantities, skip an ingredient, or fail to click Craft. Always verify that each coordinate matches your screen layout (1080p fullscreen at 100% scale is the intended target) before relying on this feature for unattended crafting sessions.
+If any coordinate in `[Crafting\Heavenly]` is misconfigured — for example, if `HPCraftMenuX`/`HPCraftMenuY` does not point to the Heavenly Potion entry after scrolling, or if the ingredient Add button coordinates are off — the macro may add the wrong quantities, skip an ingredient, or fail to click Craft. Always verify that each coordinate matches your screen layout (1080p fullscreen at 100% scale is the intended target) before relying on this feature for unattended crafting sessions.
 </Warning>

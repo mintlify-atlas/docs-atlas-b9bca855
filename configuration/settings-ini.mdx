@@ -1,7 +1,7 @@
 ---
-title: "settings.ini Configuration File Reference"
+title: "settings.ini Reference for Sol's Biome Randomizer Macro"
 sidebarTitle: "settings.ini"
-description: "Complete reference for all settings.ini sections and keys in Sol's Biome Randomizer Macro, covering coordinates, cooldowns, toggles, and Discord webhook setup."
+description: "Complete reference for every settings.ini key in Sol's Biome Randomizer Macro: coordinates, cooldowns, toggles, and Discord webhook settings."
 ---
 
 `settings.ini` is the single configuration file for Sol's Biome Randomizer Macro. It lives in the same directory as the script (or EXE) and is read once at startup to populate every coordinate, cooldown, toggle, and webhook value the macro uses. When the macro exits — either by closing the GUI window or pressing <kbd>F12</kbd> — all in-memory values are written back to `settings.ini` via AutoHotkey's `IniWrite`. This means any live changes made through the GUI (such as toggling an item on or off) are automatically persisted without any manual save step.

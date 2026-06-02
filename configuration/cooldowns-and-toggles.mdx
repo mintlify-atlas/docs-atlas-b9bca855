@@ -1,7 +1,7 @@
 ---
 title: "Cooldown and Toggle Settings for the Biome Randomizer Macro"
 sidebarTitle: "Cooldowns & Toggles"
-description: "Configure item cooldown intervals, the AFK action interval, and feature toggles including OCR bypass, crafting close bypass, and per-item enable/disable flags."
+description: "Configure cooldown intervals and feature toggles including OCR bypass, crafting close bypass, and per-item enable/disable flags for Sol's macro."
 ---
 
 The `[Cooldowns]` and `[Toggles]` sections in `settings.ini` control how often the macro acts and which automation features are active. Cooldown values are loaded at startup and converted to milliseconds internally — the macro's scheduler checks them every second to decide whether it is time to fire. Toggle values are also read at startup, but the four toggle flags (`BiomeRandomizerEnabled`, `StrangeControllerEnabled`, `IgnoreOCR`, `BypassCraftClose`) can be flipped live through the GUI without restarting, and their final state is written back to `settings.ini` when the macro exits.

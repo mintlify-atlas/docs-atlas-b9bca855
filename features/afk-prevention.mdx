@@ -15,9 +15,10 @@ The `DoAFK()` function performs the following steps every time it fires:
 3. Sends **`{e 3}`** — presses the interact key three times.
 4. Sends **`{f 3}`** — presses the use/action key three times.
 5. Schedules `CheckEden()` to run **5 seconds later** via `SetTimer(CheckEden, -5000)` — this one-shot timer scans for Eden NPC text after the action has had time to trigger any on-screen dialogue.
-6. Moves the mouse to coordinates **(778, 912)** — the position of the Eden dialogue left-option button — and clicks.
-7. Moves the mouse back to its original position.
-8. Restores focus to the previously active window.
+6. Releases the right mouse button if it is currently held down (`if GetKeyState("RButton", "P") MouseClick("Right",,,,,"U")`), so the click in the next step is not blocked by an active right-drag.
+7. Moves the mouse to coordinates **(778, 912)** — the position of the Eden dialogue left-option button — and clicks.
+8. Moves the mouse back to its original position.
+9. Restores focus to the previously active window.
 
 ```ahk
 DoAFK() {
@@ -30,6 +31,8 @@ DoAFK() {
     Send("{f 3}")
     Sleep(50)
     SetTimer(CheckEden, -5000)  ; scan for Eden 5s after AFK action
+    if GetKeyState("RButton", "P")
+        MouseClick("Right",,,,,"U")  ; release right mouse button if held
     MouseGetPos(&MouseX, &MouseY)
     MouseMove(778, 912, 3)
     Click()

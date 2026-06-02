@@ -43,11 +43,15 @@ Scheduler() {
         strangeReady := (now - lastUsedStrange) >= StrangeCooldownMs
 
         if (biomeReady && strangeReady) {
-            if (UseItem("Strange Controller"))
+            if (UseItem("Strange Controller")) {
                 lastUsedBiome := A_TickCount
-            Sleep(500)
-            if (UseItem("Biome Randomizer"))
-                lastUsedStrange := A_TickCount
+                Sleep(500)
+                if (UseItem("Biome Randomizer"))
+                    lastUsedStrange := A_TickCount
+            } else {
+                if (UseItem("Biome Randomizer"))
+                    lastUsedStrange := A_TickCount
+            }
         } else if (biomeReady) {
             if (UseItem("Biome Randomizer"))
                 lastUsedBiome := A_TickCount

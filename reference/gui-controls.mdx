@@ -18,7 +18,7 @@ The macro presents a small GUI window as soon as it launches. Built with AutoHot
 
 ## Status Labels
 
-These four read-only text labels sit at the top of the GUI and refresh every second via a recurring 1 000 ms timer.
+These three read-only text labels sit at the top of the GUI and refresh every second via a recurring 1 000 ms timer.
 
 <Accordion title="Biome Randomizer: MM:SS">
   Displays the time remaining until the macro will next use the Biome Randomizer item.
@@ -29,7 +29,7 @@ These four read-only text labels sit at the top of the GUI and refresh every sec
   | `Ready` | Cooldown has elapsed; item will be used on the next scheduler tick |
   | `Disabled` | `BiomeRandomizerEnabled` is `false`; the item will not be used until re-enabled |
 
-  The underlying cooldown duration is controlled by `BiomeRandomizerCooldownMinutes` in `settings.ini` (default: `36` minutes).
+  The underlying cooldown duration is controlled by `BiomeRandomizerCooldownMinutes` in `settings.ini` (default: `35.2` minutes).
 </Accordion>
 
 <Accordion title="Strange Controller: MM:SS">
@@ -41,7 +41,7 @@ These four read-only text labels sit at the top of the GUI and refresh every sec
   | `Ready` | Will be used on the next scheduler tick |
   | `Disabled` | `StrangeControllerEnabled` is `false` |
 
-  The underlying cooldown duration is controlled by `StrangeControllerCooldownMinutes` in `settings.ini` (default: `21` minutes).
+  The underlying cooldown duration is controlled by `StrangeControllerCooldownMinutes` in `settings.ini` (default: `20.2` minutes).
 </Accordion>
 
 <Accordion title="AFK action: MM:SS">
@@ -52,7 +52,7 @@ These four read-only text labels sit at the top of the GUI and refresh every sec
   | `MM:SS` | Time until the next AFK action fires |
   | `Ready` | AFK interval has elapsed; action will run on the next scheduler tick |
 
-  The interval is set by `AFKIntervalMinutes` in `settings.ini` (default: `1.5` minutes). The AFK action always takes priority in the scheduler — if it is due at the same time as an item use, the AFK action runs first.
+  The interval is set by `AFKIntervalMinutes` in `settings.ini` (default: `10` minutes). The AFK action always takes priority in the scheduler — if it is due at the same time as an item use, the AFK action runs first.
 </Accordion>
 
 <Accordion title="Status: stopped / running">
